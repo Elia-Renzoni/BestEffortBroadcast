@@ -5,6 +5,8 @@ import (
 	"beb/server"
 	"beb/cluster"
 	"log"
+	"net"
+	"strconv"
 )
 
 func main() {
@@ -13,6 +15,9 @@ func main() {
 
 	var process = cluster.Process{}
 	process.InitCluster()
+	
+	joiner := cluster.NewSeed("127.0.0.1", 7878)
+	joiner.PerformJoinRequest(net.JoinHostPort(*host, strconv.Itoa(*port)))
 
 	doneC := make(chan struct{})
 
