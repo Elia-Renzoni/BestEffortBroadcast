@@ -11,13 +11,17 @@ import (
 
 func main() {
 	host := flag.String("host", "127.0.0.1", "a string")
-	port := flag.Int("port", 6767, "an int")
+	port := flag.Int("port", 7878, "an int")
+
+	flag.Parse()
 
 	var process = cluster.Process{}
 	process.InitCluster()
 	
-	joiner := cluster.NewSeed("127.0.0.1", 7878)
-	joiner.PerformJoinRequest(net.JoinHostPort(*host, strconv.Itoa(*port)))
+	if *port != 7878 {
+		joiner := cluster.NewSeed("127.0.0.1", 7878)
+		joiner.PerformJoinRequest(net.JoinHostPort(*host, strconv.Itoa(*port)))
+	}
 
 	doneC := make(chan struct{})
 

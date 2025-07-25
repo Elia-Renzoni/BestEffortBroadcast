@@ -18,7 +18,8 @@ type Message struct {
 func (m Message) Broadcast(pgroup []cluster.Process) {
 	for _, val := range pgroup {	
 		func(process cluster.Process) {
-			conn, err := process.Conn.Dial(process.Protocol, process.IpAddr.String())
+			log.Println(process.TcpAddr.String())
+			conn, err := process.Conn.Dial(process.Protocol, process.TcpAddr.String())
 			if err != nil {
 				log.Fatal(err.Error())
 				return
@@ -39,10 +40,12 @@ func (m Message) Broadcast(pgroup []cluster.Process) {
 			for {
 				n, errRead = conn.Read(buf)
 				if errRead != nil {
-					netErr, _ := errRead.(net.Error)
-					if netErr.Timeout() {
-						log.Fatal("Timeout Occured, Connection Aborted")
-						return
+					netErr, ok := errRead.(net.Error)
+					if ok {
+						if netErr.Timeout() {
+							log.Fatal("Timeout Occured, Connection Aborted")
+							return
+						}
 					}
 					
 					if errRead == io.EOF {

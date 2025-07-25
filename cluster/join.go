@@ -9,13 +9,14 @@ import (
 )
 
 type Seed struct {
-	seedIpAddr *net.IPAddr
+	seedIpAddr *net.TCPAddr
 }
 
 func NewSeed(host string, port int) *Seed {
 	conv := strconv.Itoa(port)
-	ip, err := net.ResolveIPAddr("tcp", net.JoinHostPort(host, conv))
+	ip, err := net.ResolveTCPAddr("tcp", net.JoinHostPort(host, conv))
 	if err != nil {
+		log.Println(err.Error())
 		return nil
 	}
 
@@ -25,7 +26,7 @@ func NewSeed(host string, port int) *Seed {
 }
 
 func (s *Seed) PerformJoinRequest(myAddress string) {
-	conn, err := net.DialTimeout("tcp", myAddress, 10 * time.Second)
+	conn, err := net.DialTimeout("tcp", s.seedIpAddr.String(), 10 * time.Second)
 	if err != nil {
 		return
 	}

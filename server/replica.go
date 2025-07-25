@@ -132,12 +132,12 @@ func (r *Replica) messageRouter(msg dialer.Message) string {
 }
 
 func (r *Replica) createNewProcess(address string) cluster.ClusterManager {
-	ipAddr, err := net.ResolveIPAddr("tcp", address)
+	tcpAddress, err := net.ResolveTCPAddr("tcp", address)
 	if err != nil {
 		return cluster.Process{}
 	}
 	return cluster.Process{
-		IpAddr: ipAddr,
+		TcpAddr: tcpAddress,
 		Conn: net.Dialer{
 			KeepAlive: time.Second * 10,
 			Timeout: time.Second * 10,
@@ -156,6 +156,6 @@ func (r *Replica) sendBack(w io.Writer, data []byte) {
 func (r *Replica) printIncomingMessage(msg dialer.Message) {
 	log.Println(msg.Endpoint)
 	log.Println(msg.Key)
-	log.Println(msg.Value)
+	log.Println(string(msg.Value))
 	log.Println(msg.ProcessIPAddr)
 }

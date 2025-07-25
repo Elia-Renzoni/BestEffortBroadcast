@@ -12,7 +12,7 @@ type ClusterManager interface {
 }
 
 type Process struct {
-	IpAddr *net.IPAddr
+	TcpAddr *net.TCPAddr
 	Conn net.Dialer
 	Protocol string
 }
