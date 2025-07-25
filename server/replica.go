@@ -62,6 +62,7 @@ func (r *Replica) StartListen() {
 		return
 	}
 
+	log.Println("Server Ready...")
 	for {
 		conn, err := r.ls.Accept()
 		r.deadlineSetter(conn)
@@ -85,14 +86,16 @@ func (r *Replica) handleConnection(conn net.Conn) {
 	)
 	
 	n, err = conn.Read(buffer)
-	netErr, _ := err.(net.Error)
-	if netErr.Timeout() {
-		log.Fatal("Timeout Error!")	
-		return
+	netErr, ok := err.(net.Error)
+	if ok {		
+		if netErr.Timeout() {
+			log.Fatal("Timeout Error!")
+			return
+		}
 	}
 
-
 	json.Unmarshal(buffer[:n], &msg)
+	r.printIncomingMessage(msg)
 	val := r.messageRouter(msg)
 	encodedRes, err := json.Marshal(map[string]string{
 		"ack": val,
@@ -148,4 +151,11 @@ func (r *Replica) sendBack(w io.Writer, data []byte) {
 	if err != nil {
 		log.Fatal(err.Error())
 	}
+}
+
+func (r *Replica) printIncomingMessage(msg dialer.Message) {
+	log.Println(msg.Endpoint)
+	log.Println(msg.Key)
+	log.Println(msg.Value)
+	log.Println(msg.ProcessIPAddr)
 }
