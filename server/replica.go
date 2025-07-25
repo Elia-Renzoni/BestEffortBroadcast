@@ -78,33 +78,30 @@ func (r *Replica) handleConnection(conn net.Conn) {
 	defer func(conn net.Conn) {conn.Close()}(conn)
 	 
 	buffer := make([]byte, 1<<24)
-	var msg dialer.Message
+	var (
+		n int
+		msg dialer.Message
+		err error
+	)
 	
-	for {
-		n, err := conn.Read(buffer)
-		netErr, _ := err.(net.Error)
-		if netErr.Timeout() {
-			log.Fatal("Timeout Error!")	
-			return
-		}
+	n, err = conn.Read(buffer)
+	netErr, _ := err.(net.Error)
+	if netErr.Timeout() {
+		log.Fatal("Timeout Error!")	
+		return
+	}
 
-		if netErr != io.EOF {
-			log.Fatal(netErr.Error())
-		} else {
-			break
-		}
 
-		json.Unmarshal(buffer[:n], &msg)
-		val := r.messageRouter(msg)
-		encodedRes, err := json.Marshal(map[string]string{
-			"ack": val,
-		})
+	json.Unmarshal(buffer[:n], &msg)
+	val := r.messageRouter(msg)
+	encodedRes, err := json.Marshal(map[string]string{
+		"ack": val,
+	})
 
-		if err != nil {
-			r.sendBack(conn, []byte(err.Error()))	
-		} else {
-			r.sendBack(conn, encodedRes)
-		}
+	if err != nil {
+		r.sendBack(conn, []byte(err.Error()))	
+	} else {
+		r.sendBack(conn, encodedRes)
 	}
 }
 
