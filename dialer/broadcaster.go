@@ -13,6 +13,7 @@ type Message struct {
 	Key string `json:"key"`
 	Value []byte `json:"value,omitempty"`
 	ProcessIPAddr string `json:"ip_address,omitempty"`
+	Broadcaster bool `json:"broadcasted,omitempty"`
 }
 
 func (m Message) Broadcast(pgroup []cluster.Process) {

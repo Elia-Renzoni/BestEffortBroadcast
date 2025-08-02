@@ -109,6 +109,9 @@ func (r *Replica) handleConnection(conn net.Conn) {
 }
 
 func (r *Replica) messageRouter(msg dialer.Message) string {
+	var broadcasted bool = msg.Broadcaster
+	r.modifyMessageBroadcastFlag(&msg)
+
 	switch msg.Endpoint {
 	case "/join":
 		process := r.createNewProcess(msg.ProcessIPAddr)
@@ -118,14 +121,21 @@ func (r *Replica) messageRouter(msg dialer.Message) string {
 
 		// performing a broadcast action using Best Effort Broadcast
 		// abstraction
-		msg.Broadcast(cluster.Process{}.GetProcessGroup())
+		if !broadcasted {
+			msg.Broadcast(cluster.Process{}.GetProcessGroup())
+			log.Println("Broadcasting to every correct process")
+		}
+		
 	case "/get":
 		return string(r.cache.Get(msg.Key))
 	case "/delete":
 		r.cache.Delete(msg.Key)
 
 		// broadcast message to all the correct processes
-		msg.Broadcast(cluster.Process{}.GetProcessGroup())
+		if !broadcasted {
+			msg.Broadcast(cluster.Process{}.GetProcessGroup())
+			log.Println("Broadcasting to every correct process")
+		}
 	}
 
 	return "ok"
@@ -158,4 +168,10 @@ func (r *Replica) printIncomingMessage(msg dialer.Message) {
 	log.Println(msg.Key)
 	log.Println(string(msg.Value))
 	log.Println(msg.ProcessIPAddr)
+}
+
+func (r *Replica) modifyMessageBroadcastFlag(m *dialer.Message) {
+	if m.Broadcaster == false {
+		m.Broadcaster = true
+	}
 }
